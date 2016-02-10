@@ -18,7 +18,7 @@ namespace PlexPowerSaver
             var processInstaller = new ServiceProcessInstaller();
             var serviceInstaller = new ServiceInstaller();
             var asm = Assembly.GetExecutingAssembly();
-            processInstaller.Account = ServiceAccount.LocalSystem;
+            processInstaller.Account = ServiceAccount.User;
 
             serviceInstaller.DisplayName = asm.GetName().Name;
             serviceInstaller.StartType = ServiceStartMode.Automatic;
