@@ -6,72 +6,38 @@ using System.Linq;
 using System.Reflection;
 using System.ServiceProcess;
 using System.Timers;
+using System.Windows.Forms;
 
 namespace PlexPowerSaver
 {
-    public class ConsoleService : ServiceBase
+
+    static class Program
+    {
+        private static void Main(string[] args)
+        {
+            Application.EnableVisualStyles();
+            Application.SetCompatibleTextRenderingDefault(false);
+
+            Application.Run(new IdleWaiter());
+        }
+    }
+
+    public class IdleWaiter : ApplicationContext
     {
         private const int Minutes = 60000;
         private const int PollInterval = (int)(1 * Minutes);
 
         private static int _idleTimeout = (int)(30 * Minutes);
         private static string _clientId;
-        private static Timer _timer;
+        private static System.Timers.Timer _timer;
         private static PlexAccess _plex;
         private static List<String> _blacklistedProcesses;
 
-        public ConsoleService()
+        private NotifyIcon trayIcon;
+
+        public IdleWaiter()
         {
-            this.ServiceName = Assembly.GetExecutingAssembly().GetName().Name;
             initialize();
-        }
-
-        private static void Main(string[] args)
-        {
-            AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
-
-            ConsoleService service = new ConsoleService();
-            if (Environment.UserInteractive)
-            {
-                try
-                {
-                    string option = args.Length > 0 ? args[0].ToUpperInvariant() : String.Empty;
-                    switch (option)
-                    {
-                        case "-I":
-                        case "/I":
-                            ManagedInstallerClass.InstallHelper(new string[] { Assembly.GetCallingAssembly().Location });
-                            break;
-
-                        case "-U":
-                        case "/U":
-                            ManagedInstallerClass.InstallHelper(new string[] { "/U", Assembly.GetCallingAssembly().Location });
-                            break;
-
-                        default:
-                            service.OnStart(args);
-                            Trace.WriteLine("Running... Press any key to stop");
-                            Trace.WriteLine("");
-                            Console.ReadKey();
-                            service.OnStop();
-                            break;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Console.Error.WriteLine(ex.Message);
-                }
-            }
-            else
-            {
-                ServiceBase.Run(service);
-            }
-        }
-
-        private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
-        {
-            if (e.ExceptionObject is Exception)
-                Trace.WriteLine(((Exception)e.ExceptionObject).Message);
         }
 
         /// <summary>
@@ -89,6 +55,18 @@ namespace PlexPowerSaver
         {
             Trace.Listeners.Add(new ConsoleTraceListener());
 
+            var aName = Assembly.GetExecutingAssembly().GetName();
+
+            trayIcon = new NotifyIcon()
+            {
+                Icon = Properties.Resources.timer,
+                Text = aName.Name + " " + aName.Version,
+                ContextMenu = new ContextMenu(new MenuItem[] {
+                    new MenuItem("Exit", Exit)
+                }),
+                Visible = true
+            };
+
             // Load settings
             _clientId = Properties.Settings.Default.ClientId;
             _blacklistedProcesses = Properties.Settings.Default.BlacklistedProcesses.Cast<string>().ToList<string>();
@@ -100,19 +78,18 @@ namespace PlexPowerSaver
 
             // Configure and start the timer
             Trace.WriteLine("Starting timer, waiting for idle...");
-            _timer = new Timer(PollInterval);
+            _timer = new System.Timers.Timer(PollInterval);
             _timer.Elapsed += Timer_Elapsed;
-        }
-
-        protected override void OnStart(string[] args)
-        {
             _timer.Enabled = true;
         }
 
-        protected override void OnStop()
+        void Exit(object sender, EventArgs e)
         {
+            trayIcon.Visible = false;
             _timer.Enabled = false;
+            Application.Exit();
         }
+
 
         /// <summary>
         /// Check if any blacklisted process names are currently running
