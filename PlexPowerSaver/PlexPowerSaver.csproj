@@ -52,6 +52,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Classes\Installer.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="Classes\PlexAccess.cs" />
     <Compile Include="Classes\PlexObjects.cs" />
     <Compile Include="Classes\Settings.cs" />

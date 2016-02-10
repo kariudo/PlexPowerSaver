@@ -22,6 +22,7 @@ namespace PlexPowerSaver
 
         public ConsoleService()
         {
+            this.ServiceName = Assembly.GetExecutingAssembly().GetName().Name;
             initialize();
         }
 
