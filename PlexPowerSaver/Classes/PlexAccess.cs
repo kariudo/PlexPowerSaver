@@ -32,10 +32,56 @@ namespace PlexPowerSaver
             request.AddQueryParameter("X-Plex-Token", _user.authenticationToken);
             IRestResponse<MediaContainer> response = client.Execute<MediaContainer>(request);
 
-            int activeStreams = response.Data.size;
+            uint activeStreams = response.Data.size;
             Trace.WriteLine("Active streams: " + activeStreams);
 
             return activeStreams == 0;
+        }
+
+        /// <summary>
+        /// Check if the plexIdleTimeout has elapsed since the last play
+        /// </summary>
+        /// <returns>true if no videos were marked watched since the timer interval</returns>
+        public bool NoRecentPlay()
+        {
+            int plexIdleTimeout;
+            int.TryParse(Properties.Settings.Default.PlexIdleTimeout, out plexIdleTimeout);
+
+            if (string.IsNullOrEmpty(_user.authenticationToken))
+            {
+                throw new Exception("No authentication token.");
+            }
+
+            var client = new RestClient("http://localhost:32400/status/sessions/history/all");
+            var request = new RestRequest(Method.GET);
+            request.AddQueryParameter("X-Plex-Token", _user.authenticationToken);
+            request.AddQueryParameter("X-Plex-Container-Start", "0");
+            request.AddQueryParameter("X-Plex-Container-Size", "1");
+            IRestResponse<PlexHistoryObjects.MediaContainer> response = client.Execute<PlexHistoryObjects.MediaContainer>(request);
+
+            if (response.Data.Video != null)
+            {
+                var lastStream = response.Data.Video;
+                DateTime lastStreamDateTime = UnixTimeStampToDateTime(double.Parse(lastStream.ViewedAt));
+                TimeSpan timeSpan = DateTime.Now - lastStreamDateTime;
+                var msSinceLastStream = timeSpan.TotalMilliseconds;
+                Trace.WriteLine("Last stream: " + lastStream.GrandparentTitle + " at " +
+                                lastStreamDateTime.ToUniversalTime());
+
+                return msSinceLastStream >= (plexIdleTimeout * Global.Minutes);
+            }
+            else
+            {
+                return true;
+            }
+        }
+
+        public static DateTime UnixTimeStampToDateTime(double unixTimeStamp)
+        {
+            // Unix timestamp is seconds past epoch
+            System.DateTime dtDateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, System.DateTimeKind.Utc);
+            dtDateTime = dtDateTime.AddSeconds(unixTimeStamp).ToLocalTime();
+            return dtDateTime;
         }
 
         /// <summary>

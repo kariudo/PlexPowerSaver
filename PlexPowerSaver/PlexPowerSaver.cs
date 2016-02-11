@@ -10,6 +10,11 @@ using System.Windows.Forms;
 
 namespace PlexPowerSaver
 {
+    public class Global
+    {
+        public const int Minutes = 60000;
+        public const int PollInterval = 1 * Minutes;
+    }
 
     static class Program
     {
@@ -24,10 +29,8 @@ namespace PlexPowerSaver
 
     public class IdleWaiter : ApplicationContext
     {
-        private const int Minutes = 60000;
-        private const int PollInterval = (int)(1 * Minutes);
 
-        private static int _idleTimeout = (int)(30 * Minutes);
+        private static int _idleTimeout = (int)(30 * Global.Minutes);
         private static string _clientId;
         private static System.Timers.Timer _timer;
         private static PlexAccess _plex;
@@ -70,7 +73,7 @@ namespace PlexPowerSaver
             // Load settings
             _clientId = Properties.Settings.Default.ClientId;
             _blacklistedProcesses = Properties.Settings.Default.BlacklistedProcesses.Cast<string>().ToList<string>();
-            _idleTimeout = int.Parse(Properties.Settings.Default.IdleTimeout) * Minutes;
+            _idleTimeout = int.Parse(Properties.Settings.Default.IdleTimeout) * Global.Minutes;
 
             // Create the plex api client
             if (!string.IsNullOrEmpty(Properties.Settings.Default.Username) && !string.IsNullOrEmpty(Properties.Settings.Default.Password))
@@ -87,7 +90,7 @@ namespace PlexPowerSaver
         private static void StartTimer()
         {
             Trace.WriteLine("Starting timer, waiting for idle...");
-            _timer = new System.Timers.Timer(PollInterval);
+            _timer = new System.Timers.Timer(Global.PollInterval);
             _timer.Elapsed += Timer_Elapsed;
             _timer.Enabled = true;
         }
@@ -166,7 +169,7 @@ namespace PlexPowerSaver
             _timer.Enabled = false;
             Trace.WriteLine("Testing system idle status...");
 
-            if (ComputerIdle() && NoBlackListProgramOpen() && _plex.NoActiveStreams())
+            if (ComputerIdle() && NoBlackListProgramOpen() && _plex.NoActiveStreams() && _plex.NoRecentPlay())
             {
                 Shutdown();
             }

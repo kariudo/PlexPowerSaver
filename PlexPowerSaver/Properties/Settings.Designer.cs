@@ -84,5 +84,17 @@ namespace PlexPowerSaver.Properties {
                 this["Password"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("10")]
+        public string PlexIdleTimeout {
+            get {
+                return ((string)(this["PlexIdleTimeout"]));
+            }
+            set {
+                this["PlexIdleTimeout"] = value;
+            }
+        }
     }
 }
