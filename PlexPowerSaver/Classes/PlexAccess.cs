@@ -69,7 +69,15 @@ namespace PlexPowerSaver
             IRestResponse<User> response = client.Execute<User>(request);
             _user = response.Data;
 
-            Trace.WriteLine("Authenticated with Plex as " + _user.username + "(" + _user.email + ")");
+
+            if(response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+            {
+                throw new UnauthorizedAccessException("Invalid Plex login credentials.");
+            }
+            else
+            {
+                Trace.WriteLine("Authenticated with Plex as " + _user.username + "(" + _user.email + ")");
+            }
 
             return _user.authenticationToken;
         }

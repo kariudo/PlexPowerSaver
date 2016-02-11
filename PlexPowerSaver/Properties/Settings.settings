@@ -2,7 +2,7 @@
 <SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="PlexPowerSaver.Properties" GeneratedClassName="Settings">
   <Profiles />
   <Settings>
-    <Setting Name="ClientId" Type="System.String" Scope="Application">
+    <Setting Name="ClientId" Type="System.String" Scope="User">
       <Value Profile="(Default)">b94169de-175e-4a1a-bd94-bebe784069a6</Value>
     </Setting>
     <Setting Name="IdleTimeout" Type="System.String" Scope="User">

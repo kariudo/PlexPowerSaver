@@ -23,12 +23,15 @@ namespace PlexPowerSaver.Properties {
             }
         }
         
-        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("b94169de-175e-4a1a-bd94-bebe784069a6")]
         public string ClientId {
             get {
                 return ((string)(this["ClientId"]));
+            }
+            set {
+                this["ClientId"] = value;
             }
         }
         
